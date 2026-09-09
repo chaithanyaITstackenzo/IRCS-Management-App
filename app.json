@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "IRCS Management",
+    "slug": "ircs-management-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/ircs-logo.png",
+    "scheme": "ircsmanagement",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.stackenzo.ircsmanagement",
+      "infoPlist": {
+        "NSCameraUsageDescription": "IRCS Management uses the camera to capture employee face-enrollment images.",
+        "NSPhotoLibraryUsageDescription": "IRCS Management can attach a profile photo or enrollment image from your photo library."
+      }
+    },
+    "android": {
+      "icon": "./assets/images/ircs-logo.png",
+      "package": "com.stackenzo.ircsmanagement",
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
+    },
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/ircs-logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff",
+          "dark": { "backgroundColor": "#0B1220" }
+        }
+      ],
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "IRCS Management uses the camera to capture employee face-enrollment images."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "IRCS Management can attach a profile photo from your photo library."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
+    }
+  }
+}
