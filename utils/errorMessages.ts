@@ -5,7 +5,7 @@ import { AxiosError } from 'axios';
  * Never surface raw AxiosError text or backend stack traces to the user (spec §41/§100).
  */
 export function getReadableErrorMessage(error: unknown, fallback = 'Something went wrong. Please try again.'): string {
-  const err = error as AxiosError<{ message?: string }>;
+  const err = error as AxiosError<{ message?: string; error?: string }>;
 
   if (!err?.isAxiosError) {
     return fallback;
@@ -20,7 +20,10 @@ export function getReadableErrorMessage(error: unknown, fallback = 'Something we
   }
 
   const status = err.response.status;
-  const backendMessage = err.response.data?.message;
+  const responseData = err.response.data;
+  const backendMessage = typeof responseData === 'string'
+    ? undefined
+    : responseData?.message || responseData?.error;
 
   switch (status) {
     case 400:
@@ -31,7 +34,12 @@ export function getReadableErrorMessage(error: unknown, fallback = 'Something we
     case 403:
       return "You don't have permission to perform this action.";
     case 404:
-      return 'The requested information could not be found.';
+      if (typeof responseData === 'string' && String(err.config?.url ?? '').includes('speaker/upload-audio')) {
+        const baseUrl = err.config?.baseURL ?? '';
+        const requestUrl = `${baseUrl}${err.config?.url ?? ''}`;
+        return `Audio upload endpoint was not found at ${requestUrl}. Ask the backend team to deploy or mount POST /speaker/upload-audio.`;
+      }
+      return backendMessage || 'The requested information could not be found.';
     case 500:
     case 502:
     case 503:

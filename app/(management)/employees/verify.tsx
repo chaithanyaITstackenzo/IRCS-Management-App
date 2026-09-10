@@ -10,10 +10,12 @@ import { useResendEmployeeOTP, useVerifyEmployee } from '@/hooks/useEmployees';
 import { Spacing } from '@/constants/spacing';
 import { KeyboardAwareScrollView } from '@/components/common/KeyboardAwareScrollView';
 import { getReadableErrorMessage } from '@/utils/errorMessages';
+import { EmployeeNameAudio } from '@/components/employees/EmployeeNameAudio';
 
 export default function VerifyEmployeeScreen() {
   const { email = '', employeeId = '' } = useLocalSearchParams<{ email: string; employeeId: string }>();
   const [otp, setOtp] = useState('');
+  const [audioUploaded, setAudioUploaded] = useState(false);
   const verify = useVerifyEmployee();
   const resend = useResendEmployeeOTP();
 
@@ -37,7 +39,14 @@ export default function VerifyEmployeeScreen() {
         <ThemedText variant="h2">Verify employee email</ThemedText>
         <ThemedText variant="body" muted style={styles.description}>Enter the OTP sent to {email}.</ThemedText>
         <Input label="OTP" required keyboardType="number-pad" value={otp} onChangeText={setOtp} maxLength={6} />
-        <Button label="Verify Employee" loadingLabel="Verifying..." loading={verify.isPending} onPress={submit} />
+        <EmployeeNameAudio employeeId={employeeId} required onUploadStateChange={setAudioUploaded} />
+        <Button
+          label="Verify Employee"
+          loadingLabel="Verifying..."
+          loading={verify.isPending}
+          disabled={!audioUploaded}
+          onPress={submit}
+        />
         <Button
           label="Resend OTP"
           variant="secondary"

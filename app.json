@@ -4,7 +4,7 @@
     "slug": "ircs-management-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/ircs-logo.png",
+    "icon": "./assets/images/ircs-logo-padded.png",
     "scheme": "ircsmanagement",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -17,11 +17,15 @@
       }
     },
     "android": {
-      "icon": "./assets/images/ircs-logo.png",
+      "icon": "./assets/images/ircs-logo-padded.png",
       "package": "com.stackenzo.ircsmanagement",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "permissions": ["CAMERA", "READ_MEDIA_IMAGES"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static"
@@ -31,11 +35,13 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/ircs-logo.png",
-          "imageWidth": 200,
+          "image": "./assets/images/ircs-logo-padded.png",
+          "imageWidth": 220,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
-          "dark": { "backgroundColor": "#0B1220" }
+          "dark": {
+            "backgroundColor": "#0B1220"
+          }
         }
       ],
       "expo-secure-store",
@@ -50,7 +56,14 @@
         {
           "photosPermission": "IRCS Management can attach a profile photo from your photo library."
         }
-      ]
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "IRCS Management uses the microphone to record employee name audio."
+        }
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -59,8 +72,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+        "projectId": "1eba046e-208e-4dd9-9594-738a33c8dc24"
       }
-    }
+    },
+    "owner": "chaithu_2001"
   }
 }
