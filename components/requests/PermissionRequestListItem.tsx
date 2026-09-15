@@ -7,6 +7,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { Radius, Spacing } from '@/constants/spacing';
 import { REQUEST_STATUS } from '@/constants/status';
 import { PermissionRequestItem } from '@/types/managementRequests';
+import { formatDateTime } from '@/utils/date';
 
 interface PermissionRequestListItemProps {
   item: PermissionRequestItem;
@@ -14,9 +15,10 @@ interface PermissionRequestListItemProps {
   busy: boolean;
   onApprove: () => void;
   onReject: () => void;
+  history?: boolean;
 }
 
-export function PermissionRequestListItem({ item, canDecide, busy, onApprove, onReject }: PermissionRequestListItemProps) {
+export function PermissionRequestListItem({ item, canDecide, busy, onApprove, onReject, history = false }: PermissionRequestListItemProps) {
   const surface = useThemeColor({}, 'surface');
   const border = useThemeColor({}, 'border');
   const permission = item.permission;
@@ -33,9 +35,10 @@ export function PermissionRequestListItem({ item, canDecide, busy, onApprove, on
         <ThemedText variant="caption" muted numberOfLines={2}>
           {String(permission.reason ?? '')}
         </ThemedText>
+        {history ? <ThemedText variant="caption" muted>{permission.status === 'APPROVED' ? 'Approved' : 'Rejected'} by {String(permission.approved_by ?? permission.rejected_by ?? '—')} · {formatDateTime(String(permission.approved_at ?? permission.rejected_at ?? permission.updated_at ?? ''))}</ThemedText> : null}
       </View>
       <StatusBadge meta={REQUEST_STATUS[String(permission.status)] ?? REQUEST_STATUS.PENDING} />
-      {canDecide ? (
+      {canDecide && !history ? (
         <View style={styles.actions}>
           <Button label="Reject" variant="danger" onPress={onReject} disabled={busy} style={styles.action} />
           <Button label="Approve" onPress={onApprove} disabled={busy} style={styles.action} />

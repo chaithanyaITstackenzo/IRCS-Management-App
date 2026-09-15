@@ -80,3 +80,18 @@ uploadApi.interceptors.response.use(
     return handleResponseError(error);
   }
 );
+
+/** Multipart client for hardware routes such as speaker audio uploads. */
+export const hardwareUploadApi = axios.create({
+  baseURL: `${API_BASE_URL.replace(/\/(api\/hr|api\/fill|api\/notifications|api\/v1)\/?$/, '')}/api/handle`,
+  timeout: 60000,
+  headers: {
+    'Content-Type': 'multipart/form-data',
+  },
+});
+
+hardwareUploadApi.interceptors.request.use(attachAuth);
+hardwareUploadApi.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => handleResponseError(error),
+);

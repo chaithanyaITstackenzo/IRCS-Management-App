@@ -158,9 +158,18 @@ export function EmployeeNameAudio({ employeeId, required = false, onUploadStateC
         </ThemedText>
       ) : null}
       {uploadResponse && !uploadResponse.success ? (
-        <ThemedText variant="body" style={styles.error}>
-          Processing failed: {uploadResponse.successfulUploads} speaker(s) updated, {uploadResponse.failedUploads} failed.
-        </ThemedText>
+        <View>
+          <ThemedText variant="body" style={styles.error}>
+            Audio processing completed, but {uploadResponse.successfulUploads} speaker(s) updated and {uploadResponse.failedUploads} failed.
+          </ThemedText>
+          {uploadResponse.results
+            .filter((result) => !result.success)
+            .map((result) => (
+              <ThemedText key={result.speakerId} variant="caption" style={styles.error}>
+                {result.speakerCode} ({result.ipAddress ?? 'no IP'}): {result.message}
+              </ThemedText>
+            ))}
+        </View>
       ) : null}
     </View>
   );

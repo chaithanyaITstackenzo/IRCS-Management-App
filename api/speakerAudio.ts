@@ -1,4 +1,4 @@
-import { uploadApi } from './axios';
+import { hardwareUploadApi } from './axios';
 
 export interface SpeakerAudioUploadResult {
   speakerId: string;
@@ -44,7 +44,7 @@ export async function uploadEmployeeNameAudio(
   formData.append('employeeId', employeeId);
   formData.append('uploadType', 'ALL');
 
-  const { data } = await uploadApi.post<SpeakerAudioUploadResponse>('/speaker/upload-audio', formData, {
+  const { data } = await hardwareUploadApi.post<SpeakerAudioUploadResponse>('/speaker/upload-audio', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     timeout: 60000,
   });

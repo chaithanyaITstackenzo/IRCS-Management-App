@@ -7,9 +7,9 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { Radius, Spacing } from '@/constants/spacing';
 import { REQUEST_STATUS, REQUEST_TYPE_LABEL } from '@/constants/status';
 import { AttendanceRequest } from '@/types/request';
-import { formatDate } from '@/utils/date';
+import { formatDate, formatDateTime } from '@/utils/date';
 
-export function RequestListItem({ request }: { request: AttendanceRequest }) {
+export function RequestListItem({ request, history = false }: { request: AttendanceRequest; history?: boolean }) {
   const surface = useThemeColor({}, 'surface');
   const border = useThemeColor({}, 'border');
   const name = request.employee
@@ -29,6 +29,7 @@ export function RequestListItem({ request }: { request: AttendanceRequest }) {
         <ThemedText variant="caption" muted numberOfLines={2}>
           {request.reason}
         </ThemedText>
+        {history ? <ThemedText variant="caption" muted>{request.status === 'APPROVED' ? 'Approved' : 'Rejected'} by {request.approved_by ?? '—'} · {formatDateTime(request.approved_at ?? request.updated_at)}</ThemedText> : null}
       </View>
       <StatusBadge meta={REQUEST_STATUS[request.status]} />
     </Pressable>

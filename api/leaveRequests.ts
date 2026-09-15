@@ -3,9 +3,13 @@ import { LeaveRequestItem, RequestListResponse } from '@/types/managementRequest
 import { useAuthStore } from '@/store/authStore';
 import { MOCK_AUTH_ENABLED } from '@/constants/api';
 
-export async function listLeaveRequests(params: Record<string, string | number | undefined> = {}) {
+export async function listLeaveRequests(params: Record<string, string | number | undefined> = {}): Promise<RequestListResponse<LeaveRequestItem>> {
   if (MOCK_AUTH_ENABLED) return { success: true, filters: params, pagination: { total_records: 0 }, requests: [] };
-  const { data } = await fillApi.get<RequestListResponse<LeaveRequestItem>>('/leaveRequests', { params: { status: 'PENDING', page: 1, limit: 50, ...params } });
+  if (params.status === 'ALL') {
+    const responses = await Promise.all(['APPROVED', 'REJECTED'].map((status) => listLeaveRequests({ ...params, status })));
+    return { ...responses[0], requests: responses.flatMap((response) => response.requests) };
+  }
+  const { data } = await fillApi.get<RequestListResponse<LeaveRequestItem>>('/leaveRequests', { params: { page: 1, limit: 50, ...params } });
   return data;
 }
 

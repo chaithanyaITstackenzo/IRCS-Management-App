@@ -4,8 +4,8 @@ import { AttendanceRequestRejectPayload } from '@/types/request';
 
 const key = ['attendance-requests'] as const;
 
-export function usePendingRequests() {
-  return useQuery({ queryKey: [...key, 'pending'], queryFn: requestsApi.listPendingRequests, staleTime: 1000 * 20 });
+export function usePendingRequests(status: 'PENDING' | 'ALL' = 'PENDING', params: Record<string, string | number | undefined> = {}) {
+  return useQuery({ queryKey: [...key, status.toLowerCase(), params], queryFn: () => requestsApi.listRequests(status, params), staleTime: 1000 * 20 });
 }
 
 export function useRequest(id: string) {
@@ -23,7 +23,7 @@ export function useRequest(id: string) {
 }
 
 function invalidateAfterDecision(qc: ReturnType<typeof useQueryClient>, id: string) {
-  qc.invalidateQueries({ queryKey: [...key, 'pending'] });
+  qc.invalidateQueries({ queryKey: key });
   qc.invalidateQueries({ queryKey: [...key, id] });
   qc.invalidateQueries({ queryKey: ['dashboard', 'management'] });
 }

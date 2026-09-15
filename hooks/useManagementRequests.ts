@@ -12,7 +12,10 @@ export function useDecidePermissionRequest() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ requestId, action, details }: { requestId: string; action: 'APPROVE' | 'REJECT'; details?: { approved_from?: string; approved_to?: string; rejection_reason?: string } }) => permissionApi.decidePermissionRequest(requestId, action, details),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['permission-requests'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['permission-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'management'] });
+    },
   });
 }
 
@@ -24,7 +27,10 @@ export function useDecideLeaveRequest() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ requestId, action, rejection_reason }: { requestId: string; action: 'APPROVE' | 'REJECT'; rejection_reason?: string }) => leaveApi.decideLeaveRequest(requestId, action, rejection_reason),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['leave-requests'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'management'] });
+    },
   });
 }
 
@@ -37,7 +43,10 @@ export function useDecideWorkoffRequest() {
   return useMutation({
     mutationFn: ({ requestId, action, rejectionReason }: { requestId: string; action: 'APPROVE' | 'REJECT'; rejectionReason?: string }) =>
       workoffApi.decideWorkoffRequest(requestId, action, rejectionReason),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workoff-requests'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workoff-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'management'] });
+    },
   });
 }
 

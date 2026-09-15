@@ -7,6 +7,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { Radius, Spacing } from '@/constants/spacing';
 import { REQUEST_STATUS } from '@/constants/status';
 import { LeaveRequestItem } from '@/types/managementRequests';
+import { formatDateTime } from '@/utils/date';
 
 interface LeaveRequestListItemProps {
   item: LeaveRequestItem;
@@ -14,9 +15,10 @@ interface LeaveRequestListItemProps {
   busy: boolean;
   onApprove: () => void;
   onReject: () => void;
+  history?: boolean;
 }
 
-export function LeaveRequestListItem({ item, canDecide, busy, onApprove, onReject }: LeaveRequestListItemProps) {
+export function LeaveRequestListItem({ item, canDecide, busy, onApprove, onReject, history = false }: LeaveRequestListItemProps) {
   const surface = useThemeColor({}, 'surface');
   const border = useThemeColor({}, 'border');
   const leave = item.leave;
@@ -31,9 +33,10 @@ export function LeaveRequestListItem({ item, canDecide, busy, onApprove, onRejec
         <ThemedText variant="caption" muted numberOfLines={2}>
           {String(leave.reason ?? '')}
         </ThemedText>
+        {history ? <ThemedText variant="caption" muted>{leave.status === 'APPROVED' ? 'Approved' : 'Rejected'} by {String(leave.approved_by ?? leave.rejected_by ?? '—')} · {formatDateTime(String(leave.approved_at ?? leave.rejected_at ?? leave.updated_at ?? ''))}</ThemedText> : null}
       </View>
       <StatusBadge meta={REQUEST_STATUS[String(leave.status)] ?? REQUEST_STATUS.PENDING} />
-      {canDecide ? (
+      {canDecide && !history ? (
         <View style={styles.actions}>
           <Button label="Reject" variant="danger" onPress={onReject} disabled={busy} style={styles.action} />
           <Button label="Approve" onPress={onApprove} disabled={busy} style={styles.action} />

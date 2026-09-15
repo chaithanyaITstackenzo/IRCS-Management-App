@@ -43,10 +43,21 @@ function normalizeRequest(request: BackendAttendanceRequest, employee?: BackendA
   };
 }
 
+export async function listRequests(status: 'PENDING' | 'ALL' = 'PENDING', params: Record<string, string | number | undefined> = {}): Promise<AttendanceRequest[]> {
+  if (MOCK_AUTH_ENABLED) {
+    const requests = await mock.mockPendingRequests();
+    return status === 'PENDING' ? requests.filter((request) => request.status === 'PENDING') : requests;
+  }
+  const statuses = status === 'ALL' ? ['APPROVED', 'REJECTED'] : [status];
+  const responses = await Promise.all(statuses.map((requestStatus) =>
+    fillApi.get<{ requests: Array<{ request: BackendAttendanceRequest; employee?: BackendAttendanceEmployee }> }>('/attendanceRequests', { params: { status: requestStatus, page: 1, ...params } }),
+  ));
+  const requests = responses.flatMap(({ data }) => data.requests.map((item) => normalizeRequest(item.request, item.employee)));
+  return status === 'PENDING' ? requests.filter((request) => request.status === 'PENDING') : requests;
+}
+
 export async function listPendingRequests(): Promise<AttendanceRequest[]> {
-  if (MOCK_AUTH_ENABLED) return mock.mockPendingRequests();
-  const { data } = await fillApi.get<{ requests: Array<{ request: BackendAttendanceRequest; employee?: BackendAttendanceEmployee }> }>('/attendanceRequests', { params: { status: 'PENDING', page: 1 } });
-  return data.requests.map((item) => normalizeRequest(item.request, item.employee));
+  return listRequests('PENDING');
 }
 
 export async function getRequest(id: string): Promise<AttendanceRequest> {

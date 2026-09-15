@@ -11,6 +11,39 @@
 const DATE_OPTS: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric' };
 const TIME_OPTS: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', hour12: true };
 
+export type ApprovalHistoryPeriod = 'today' | 'week' | 'month' | `month:${string}`;
+
+export function currentMonthValue(): string {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+export function getApprovalHistoryRange(period: ApprovalHistoryPeriod, selectedMonth = ''): { fromDate: string; toDate: string } {
+  const today = new Date();
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const end = new Date(start);
+
+  if (period === 'week') {
+    const day = start.getDay();
+    start.setDate(start.getDate() - (day === 0 ? 6 : day - 1));
+  } else if (period === 'month') {
+    const [year, month] = (selectedMonth ?? '').split('-').map(Number);
+    if (year && month) {
+      start.setFullYear(year, month - 1, 1);
+      end.setFullYear(year, month, 0);
+    } else {
+      start.setDate(1);
+      end.setMonth(end.getMonth() + 1, 0);
+    }
+  } else if (period.startsWith('month:')) {
+    const [year, month] = period.slice(6).split('-').map(Number);
+    start.setFullYear(year, month - 1, 1);
+    end.setFullYear(year, month, 0);
+  }
+
+  return { fromDate: toDateInputValue(start), toDate: toDateInputValue(end) };
+}
+
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '—';
   const d = new Date(value);
