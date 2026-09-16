@@ -19,8 +19,13 @@ export function useEmployee(id: string) {
     queryFn: async () => {
       const cached = queryClient.getQueriesData<EmployeeListItemSummary[]>({ queryKey: [...key, 'list'] });
       const employee = cached.flatMap(([, data]) => data ?? []).find((item) => item.id === id);
-      if (!employee) throw new Error('Employee details are not available. Return to the employee list and try again.');
-      return employee as Employee;
+      if (employee) return employee as Employee;
+
+      const employees = await employeesApi.listEmployees({});
+      const fetchedEmployee = employees.find((item) => item.id === id);
+      if (fetchedEmployee) return fetchedEmployee as Employee;
+
+      throw new Error('Employee details are not available. Return to the employee list and try again.');
     },
     enabled: !!id,
   });

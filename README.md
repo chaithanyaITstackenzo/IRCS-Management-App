@@ -126,6 +126,6 @@ real backend secrets here.
   Thoufiq's contract (see above).
 - Employee/attendance list pagination assumes a `page` query param; adjust
   `EmployeeListParams` / `AttendanceListParams` and the corresponding hooks once confirmed.
-- No push notification handling is implemented yet — V1 routes notifications through
-  Firebase Realtime Database (`users.expo_token`), which is out of scope for this pass
-  and was intentionally not invented.
+- Push notifications use Expo Notifications. The frontend registers its Expo token through
+   the backend's existing `PUT /api/hr/expoToken` endpoint; delivery still depends on the
+   backend's Expo/Firebase notification sender being configured for `users.expo_token`.

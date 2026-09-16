@@ -14,8 +14,13 @@ export interface MonthlyReportParams {
 
 export interface PayrollReportParams {
   month: string; // "YYYY-MM"
-  employee_id?: string;
-  department_id?: string;
+  employee_id: string;
+}
+
+export interface SalaryReportResponse {
+  success: boolean;
+  report: Record<string, unknown>;
+  breakdown: Record<string, unknown>;
 }
 
 /**

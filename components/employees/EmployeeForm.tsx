@@ -11,7 +11,6 @@ import { useShifts } from '@/hooks/useShifts';
 import { useRoles } from '@/hooks/useRoles';
 import { Employee, EmployeeCreatePayload } from '@/types/employee';
 import { Spacing } from '@/constants/spacing';
-import { Colors } from '@/constants/colors';
 import { formatShiftRange, shiftTypeLabel } from '@/utils/shift';
 import { EmployeeNameAudio } from './EmployeeNameAudio';
 
@@ -59,8 +58,6 @@ export function EmployeeForm({ initial, submitLabel, submittingLabel, submitting
     password: '',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof EmployeeFormValues, string>>>({});
-  const [audioUploaded, setAudioUploaded] = useState(false);
-  const [audioError, setAudioError] = useState<string | null>(null);
 
   const departments = useDepartments();
   const designations = useDesignations();
@@ -91,11 +88,6 @@ export function EmployeeForm({ initial, submitLabel, submittingLabel, submitting
 
   const handleSubmit = () => {
     if (!validate()) return;
-    if (initial && !audioUploaded) {
-      setAudioError('Upload employee name audio before saving changes.');
-      return;
-    }
-    setAudioError(null);
     onSubmit({ ...values, salary: Number(values.salary) });
   };
 
@@ -217,15 +209,7 @@ export function EmployeeForm({ initial, submitLabel, submittingLabel, submitting
         error={errors.salary}
       />
 
-      <EmployeeNameAudio
-        employeeId={initial?.id}
-        required={Boolean(initial)}
-        onUploadStateChange={(uploaded) => {
-          setAudioUploaded(uploaded);
-          if (uploaded) setAudioError(null);
-        }}
-      />
-      {audioError ? <ThemedText variant="body" style={styles.audioError}>{audioError}</ThemedText> : null}
+      <EmployeeNameAudio employeeId={initial?.id} />
 
       <Button
         label={submitLabel}
@@ -242,5 +226,4 @@ export function EmployeeForm({ initial, submitLabel, submittingLabel, submitting
 const styles = StyleSheet.create({
   groupLabel: { marginTop: Spacing.sm, marginBottom: Spacing.md },
   submit: { marginTop: Spacing.md, marginBottom: Spacing.xxxl },
-  audioError: { color: Colors.light.error },
 });

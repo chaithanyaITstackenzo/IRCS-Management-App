@@ -14,6 +14,8 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { FullScreenLoader } from '@/components/common/FullScreenLoader';
 import { canAccessManagementApp } from '@/utils/permissions';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { addNotificationResponseListener, getLastNotificationResponse, getNotificationData, registerForPushNotifications, storePushToken } from '@/services/pushNotifications';
+import type * as Notifications from 'expo-notifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,6 +43,67 @@ export default function RootLayout() {
   const router = useRouter();
   const navigationState = useRootNavigationState();
   const [splashHidden, setSplashHidden] = useState(false);
+
+  useEffect(() => {
+    if (!isAppReady || !token || !user?.id) return;
+
+    registerForPushNotifications().then((expoPushToken) => {
+      if (expoPushToken) void storePushToken(expoPushToken);
+    });
+  }, [isAppReady, token, user?.id]);
+
+  useEffect(() => {
+    if (!isAppReady || !token || !navigationState?.key) return;
+
+    const openNotificationTarget = (response: Notifications.NotificationResponse) => {
+      const data = getNotificationData(response);
+      const requestId = data.requestId ?? data.request_id ?? data.attendance_request_id;
+      const attendanceId = data.attendanceId ?? data.attendance_id;
+      const screen = typeof data.screen === 'string' ? data.screen : '';
+      const referenceId = data.referenceId ?? data.reference_id;
+
+      if (requestId !== undefined && requestId !== null) {
+        router.push(`/(management)/requests/${String(requestId)}`);
+        return;
+      }
+      if (attendanceId !== undefined && attendanceId !== null) {
+        router.push(`/(management)/attendance/${String(attendanceId)}`);
+        return;
+      }
+      if (referenceId !== undefined && referenceId !== null && screen.includes('request')) {
+        router.push(`/(management)/requests/${String(referenceId)}`);
+        return;
+      }
+      if (referenceId !== undefined && referenceId !== null && screen.includes('attendance')) {
+        router.push(`/(management)/attendance/${String(referenceId)}`);
+        return;
+      }
+      if (referenceId !== undefined && referenceId !== null && screen.includes('speaker')) {
+        router.push(`/(management)/infrastructure/speaker/${String(referenceId)}`);
+        return;
+      }
+      if (screen === 'requests' || screen === 'attendance' || screen === 'attendance/history') {
+        router.push(screen === 'requests' ? '/(management)/(tabs)/requests' : '/(management)/attendance/history');
+        return;
+      }
+      if (screen === 'speakers' || screen === 'infrastructure/speakers') {
+        router.push('/(management)/infrastructure/speakers');
+        return;
+      }
+      if (screen === 'salary' || screen === 'salaries' || screen === 'payroll' || screen === 'reports/payroll') {
+        router.push('/(management)/reports/payroll');
+      }
+    };
+
+    const removeResponseListener = addNotificationResponseListener(openNotificationTarget);
+    getLastNotificationResponse()
+      .then((response) => {
+        if (response) openNotificationTarget(response);
+      })
+      .catch((error) => console.warn('[notifications] Could not read the last notification response.', error));
+
+    return removeResponseListener;
+  }, [isAppReady, navigationState?.key, router, token]);
 
   useEffect(() => {
     checkAuth();

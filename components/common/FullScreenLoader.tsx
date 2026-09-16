@@ -19,6 +19,6 @@ export function FullScreenLoader() {
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  logoFrame: { width: 176, height: 176, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: 16, marginBottom: 24 },
-  logo: { width: 152, height: 152 },
+  logoFrame: { width: 200, height: 200, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderRadius: 16, marginBottom: 24 },
+  logo: { width: 176, height: 176 },
 });

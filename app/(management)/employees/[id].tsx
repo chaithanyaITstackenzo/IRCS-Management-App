@@ -19,12 +19,13 @@ import { formatEmployeeName, formatCurrencyINR, formatEmploymentType, initials }
 import { formatDate } from '@/utils/date';
 import { formatShiftRange } from '@/utils/shift';
 import { getReadableErrorMessage } from '@/utils/errorMessages';
-import { canManageEmployees, canStartEnrollment } from '@/utils/permissions';
+import { canManageEmployees, canStartEnrollment, canViewPayroll } from '@/utils/permissions';
 import { useAuthStore } from '@/store/authStore';
 
 export default function EmployeeDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: employee, isLoading, isError, error, refetch } = useEmployee(id);
+  const { id: routeId } = useLocalSearchParams<{ id?: string | string[] }>();
+  const id = Array.isArray(routeId) ? routeId[0] : routeId;
+  const { data: employee, isLoading, isError, error, refetch } = useEmployee(id ?? '');
   const deactivate = useDeactivateEmployee();
   const [confirmVisible, setConfirmVisible] = useState(false);
   const { user } = useAuthStore();
@@ -130,6 +131,14 @@ export default function EmployeeDetailScreen() {
               disabled={!employee.status}
             />
           </View>
+        ) : null}
+
+        {canViewPayroll(user?.role) ? (
+          <Button
+            label="Salary Report"
+            variant="secondary"
+            onPress={() => router.push({ pathname: '/(management)/reports/payroll', params: { employeeId: employee.id } })}
+          />
         ) : null}
       </ScrollView>
 

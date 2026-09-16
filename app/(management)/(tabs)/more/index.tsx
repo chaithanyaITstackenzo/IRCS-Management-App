@@ -9,7 +9,7 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useAuthStore } from '@/store/authStore';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Spacing } from '@/constants/spacing';
-import { canManageOrganization } from '@/utils/permissions';
+import { canManageOrganization, canViewPayroll } from '@/utils/permissions';
 
 interface MenuItem {
   label: string;
@@ -28,6 +28,9 @@ export default function MoreScreen() {
     { label: 'Roles', icon: 'shield-checkmark-outline', href: '/(management)/organization/roles' },
     { label: 'Shifts', icon: 'time-outline', href: '/(management)/organization/shifts' },
   ];
+  const reportItems: MenuItem[] = [
+    { label: 'Payroll Report', icon: 'cash-outline', href: '/(management)/reports/payroll' },
+  ];
 
   return (
     <ThemedView style={styles.flex}>
@@ -44,6 +47,7 @@ export default function MoreScreen() {
         </Card>
 
         {canManageOrganization(user?.role) ? <MenuSection title="Organization" items={organizationItems} /> : null}
+        {canViewPayroll(user?.role) ? <MenuSection title="Reports" items={reportItems} /> : null}
 
         <Pressable onPress={() => setLogoutConfirm(true)} style={styles.logoutRow}>
           <Ionicons name="log-out-outline" size={20} color={muted} />
