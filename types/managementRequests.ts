@@ -55,6 +55,11 @@ export interface Notification {
   action?: 'APPROVE' | 'REJECT';
   attendance_request_id?: string;
   attendance_id?: string;
+  request_id?: string;
+  requestId?: string;
+  reference_id?: string;
+  referenceId?: string;
+  screen?: string;
   message: string;
   rejection_reason?: string;
   is_read: boolean;

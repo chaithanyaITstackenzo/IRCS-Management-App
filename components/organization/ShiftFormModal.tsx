@@ -37,8 +37,8 @@ export function ShiftFormModal({ visible, title, initial, submitting, onSubmit, 
   useEffect(() => {
     if (visible) {
       setName(initial?.name ?? '');
-      setStartTime(initial?.start_time?.slice(0, 5) ?? '');
-      setEndTime(initial?.end_time?.slice(0, 5) ?? '');
+      setStartTime(toTimeInput(initial?.start_time));
+      setEndTime(toTimeInput(initial?.end_time));
       setErrors({});
     }
   }, [visible, initial]);
@@ -53,7 +53,11 @@ export function ShiftFormModal({ visible, title, initial, submitting, onSubmit, 
     if (!TIME_REGEX.test(endTime)) next.end_time = 'Use 24-hour HH:MM format, e.g. 17:00.';
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-    onSubmit({ name: name.trim(), start_time: startTime, end_time: endTime });
+    onSubmit({
+      name: name.trim(),
+      start_time: toBackendTime(startTime),
+      end_time: toBackendTime(endTime),
+    });
   };
 
   return (
@@ -103,6 +107,16 @@ export function ShiftFormModal({ visible, title, initial, submitting, onSubmit, 
       </Pressable>
     </Modal>
   );
+}
+
+function toBackendTime(time: string): string {
+  return `${time}:00`;
+}
+
+function toTimeInput(value?: string): string {
+  if (!value) return '';
+  const match = value.match(/T(\d{2}:\d{2})/);
+  return match?.[1] ?? value.slice(0, 5);
 }
 
 const styles = StyleSheet.create({

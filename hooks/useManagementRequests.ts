@@ -53,3 +53,17 @@ export function useDecideWorkoffRequest() {
 export function useNotifications() {
   return useQuery({ queryKey: ['notifications'], queryFn: notificationsApi.listNotifications, retry: false });
 }
+
+export function useMarkNotificationAsRead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ notificationId }: { notificationId: string }) => notificationsApi.markNotificationAsRead(notificationId),
+    onSuccess: (_, { notificationId }) => {
+      queryClient.setQueryData(['notifications'], (oldData: { id: string; is_read: boolean }[] | undefined) =>
+        oldData ? oldData.map((item) => (item.id === notificationId ? { ...item, is_read: true } : item)) : oldData
+      );
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+}

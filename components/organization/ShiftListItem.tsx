@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '../ui/ThemedText';
 import { StatusBadge } from '../common/StatusBadge';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -11,9 +12,10 @@ import { formatShiftRange, shiftTypeLabel } from '@/utils/shift';
 interface Props {
   shift: Shift;
   onPress?: () => void;
+  onDelete?: () => void;
 }
 
-export function ShiftListItem({ shift, onPress }: Props) {
+export function ShiftListItem({ shift, onPress, onDelete }: Props) {
   const surface = useThemeColor({}, 'surface');
   const border = useThemeColor({}, 'border');
   const info = useThemeColor({}, 'info');
@@ -36,6 +38,14 @@ export function ShiftListItem({ shift, onPress }: Props) {
       </View>
       <View style={styles.actions}>
         <StatusBadge meta={EMPLOYEE_STATUS[String(shift.status) as 'true' | 'false']} />
+        <View style={styles.iconActions}>
+          <Pressable accessibilityLabel={`Edit ${shift.name}`} onPress={onPress} hitSlop={8} style={styles.iconButton}>
+            <Ionicons name="create-outline" size={20} color={info} />
+          </Pressable>
+          <Pressable accessibilityLabel={`Delete ${shift.name}`} onPress={onDelete} hitSlop={8} style={styles.iconButton}>
+            <Ionicons name="trash-outline" size={20} color="#DC2626" />
+          </Pressable>
+        </View>
       </View>
     </Pressable>
   );
@@ -53,4 +63,6 @@ const styles = StyleSheet.create({
   info: { flex: 1, marginRight: Spacing.md },
   titleRow: { flexDirection: 'row', alignItems: 'center' },
   actions: { alignItems: 'flex-end' },
+  iconActions: { flexDirection: 'row', marginTop: Spacing.sm },
+  iconButton: { paddingLeft: Spacing.md },
 });

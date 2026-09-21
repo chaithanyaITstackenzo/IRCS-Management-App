@@ -41,3 +41,14 @@ export function useSetShiftStatus() {
     },
   });
 }
+
+export function useDeleteShift() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => shiftsApi.deleteShift(id),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: key });
+      qc.removeQueries({ queryKey: [...key, id] });
+    },
+  });
+}

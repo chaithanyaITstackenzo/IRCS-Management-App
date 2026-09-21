@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { StatCard } from '@/components/common/StatCard';
 import { ErrorState } from '@/components/common/ErrorState';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
+import { NotificationBellButton } from '@/components/common/NotificationBellButton';
 import { useManagementDashboard } from '@/hooks/useDashboard';
 import { Spacing } from '@/constants/spacing';
 import { formatDateTime } from '@/utils/date';
@@ -22,12 +23,17 @@ export default function DashboardScreen() {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
-        <ThemedText variant="caption" muted>
-          {greeting}
-        </ThemedText>
-        <ThemedText variant="h1" style={styles.title}>
-          Management Dashboard
-        </ThemedText>
+        <View style={styles.headerRow}>
+          <View style={styles.headerTextWrap}>
+            <ThemedText variant="caption" muted>
+              {greeting}
+            </ThemedText>
+            <ThemedText variant="h1" style={styles.title}>
+              Management Dashboard
+            </ThemedText>
+          </View>
+          <NotificationBellButton />
+        </View>
 
         {isLoading ? (
           <LoadingSkeleton rows={4} />
@@ -83,7 +89,17 @@ function getGreeting() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   content: { padding: Spacing.xl, paddingBottom: Spacing.xxxl },
-  title: { marginBottom: Spacing.xl },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.lg,
+  },
+  headerTextWrap: {
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  title: { marginBottom: 0 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
   updated: { marginTop: Spacing.lg },
   quickActions: { marginTop: Spacing.xxl },

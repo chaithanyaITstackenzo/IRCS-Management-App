@@ -13,8 +13,12 @@ export function useRequest(id: string) {
   return useQuery({
     queryKey: [...key, id],
     queryFn: async () => {
-      const cached = queryClient.getQueryData<import('@/types/request').AttendanceRequest[]>([...key, 'pending']);
-      const request = cached?.find((item) => item.id === id);
+      const cachedQueries = queryClient.getQueriesData<import('@/types/request').AttendanceRequest[]>({
+        queryKey: [...key, 'pending'],
+      });
+      const request = cachedQueries
+        .flatMap(([, requests]) => requests ?? [])
+        .find((item) => item.id === id);
       if (!request) throw new Error('Request details are not available. Return to the request list and try again.');
       return request;
     },

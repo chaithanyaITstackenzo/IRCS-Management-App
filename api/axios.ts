@@ -11,6 +11,7 @@ const createClient = (prefix: string) => axios.create({
 });
 
 export const hrApi = createClient('/api/hr');
+export const shiftsApi = createClient('/api/shifts');
 export const fillApi = createClient('/api/fill');
 export const notificationsApi = createClient('/api/notifications');
 export const api = hrApi;
@@ -31,7 +32,7 @@ const handleResponseError = (error: AxiosError) => {
   return Promise.reject(error);
 };
 
-[hrApi, fillApi, notificationsApi].forEach((client) => {
+[hrApi, shiftsApi, fillApi, notificationsApi].forEach((client) => {
   client.interceptors.request.use(attachAuth, handleRequestError);
   client.interceptors.response.use((response) => response, handleResponseError);
 });

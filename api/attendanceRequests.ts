@@ -67,7 +67,8 @@ export async function getRequest(id: string): Promise<AttendanceRequest> {
 
 export async function approveRequest(id: string): Promise<AttendanceRequest> {
   if (MOCK_AUTH_ENABLED) return mock.mockApproveRequest(id);
-  const { data } = await fillApi.put<{ request: BackendAttendanceRequest }>('/attendanceRequest', { requestId: id, action: 'APPROVE', approvedBy: useAuthStore.getState().user?.user_id });
+  const user = useAuthStore.getState().user;
+  const { data } = await fillApi.put<{ request: BackendAttendanceRequest }>('/attendanceRequest', { requestId: id, action: 'APPROVE', approvedBy: user?.user_id ?? user?.id });
   return normalizeRequest(data.request);
 }
 
@@ -77,6 +78,7 @@ export async function rejectRequest(id: string, payload?: AttendanceRequestRejec
   const reason = payload?.rejection_reason?.trim();
   if (!reason) throw new Error('Rejection reason is required.');
   if (MOCK_AUTH_ENABLED) return mock.mockRejectRequest(id, reason);
-  const { data } = await fillApi.put<{ request: BackendAttendanceRequest }>('/attendanceRequest', { requestId: id, action: 'REJECT', approvedBy: useAuthStore.getState().user?.user_id, rejectionReason: reason });
+  const user = useAuthStore.getState().user;
+  const { data } = await fillApi.put<{ request: BackendAttendanceRequest }>('/attendanceRequest', { requestId: id, action: 'REJECT', approvedBy: user?.user_id ?? user?.id, rejectionReason: reason });
   return normalizeRequest(data.request);
 }

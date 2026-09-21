@@ -16,6 +16,7 @@ export async function listPermissionRequests(params: Record<string, string | num
 export async function decidePermissionRequest(requestId: string, action: 'APPROVE' | 'REJECT', details: { approved_from?: string; approved_to?: string; rejection_reason?: string } = {}) {
   if (action === 'REJECT' && !details.rejection_reason?.trim()) throw new Error('Rejection reason is required.');
   if (MOCK_AUTH_ENABLED) return { success: true, status: `PERMISSION_${action}`, requestId };
-  const { data } = await fillApi.put(`/permissionRequest/${requestId}`, { action, approved_by: useAuthStore.getState().user?.user_id, ...details });
+  const user = useAuthStore.getState().user;
+  const { data } = await fillApi.put(`/permissionRequest/${requestId}`, { action, approved_by: user?.user_id ?? user?.id, ...details });
   return data;
 }

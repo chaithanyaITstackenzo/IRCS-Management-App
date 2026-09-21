@@ -18,10 +18,11 @@ export async function listWorkoffRequests(params: Record<string, string | number
 export async function decideWorkoffRequest(requestId: string, action: 'APPROVE' | 'REJECT', rejectionReason?: string) {
   if (action === 'REJECT' && !rejectionReason?.trim()) throw new Error('Rejection reason is required.');
   if (MOCK_AUTH_ENABLED) return { success: true, status: `WORKOFF_${action}`, requestId };
+  const user = useAuthStore.getState().user;
   const { data } = await fillApi.put('/workoff/manage', {
     workoffId: requestId,
     action,
-    userId: useAuthStore.getState().user?.user_id,
+    userId: user?.user_id ?? user?.id,
     ...(rejectionReason ? { rejectionReason } : {}),
   });
   return data;

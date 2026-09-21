@@ -20,6 +20,7 @@ export default function ManagementLayout() {
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
 
       <Stack.Screen name="employees/add" options={{ title: 'Add Employee' }} />
       <Stack.Screen name="employees/verify" options={{ title: 'Verify Employee' }} />

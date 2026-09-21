@@ -16,6 +16,7 @@ export async function listLeaveRequests(params: Record<string, string | number |
 export async function decideLeaveRequest(requestId: string, action: 'APPROVE' | 'REJECT', rejection_reason?: string) {
   if (action === 'REJECT' && !rejection_reason?.trim()) throw new Error('Rejection reason is required.');
   if (MOCK_AUTH_ENABLED) return { success: true, status: `LEAVE_${action}`, requestId };
-  const { data } = await fillApi.put('/leaveRequest', { requestId, action, approvedBy: useAuthStore.getState().user?.user_id, ...(rejection_reason ? { rejection_reason } : {}) });
+  const user = useAuthStore.getState().user;
+  const { data } = await fillApi.put('/leaveRequest', { requestId, action, approvedBy: user?.user_id ?? user?.id, ...(rejection_reason ? { rejectionReason: rejection_reason } : {}) });
   return data;
 }
