@@ -12,6 +12,7 @@ export interface ShiftFormValues {
   name: string;
   start_time: string;
   end_time: string;
+  grace_period_minutes?: number;
 }
 
 interface Props {
@@ -31,7 +32,8 @@ export function ShiftFormModal({ visible, title, initial, submitting, onSubmit, 
   const [name, setName] = useState(initial?.name ?? '');
   const [startTime, setStartTime] = useState(initial?.start_time?.slice(0, 5) ?? '');
   const [endTime, setEndTime] = useState(initial?.end_time?.slice(0, 5) ?? '');
-  const [errors, setErrors] = useState<{ name?: string; start_time?: string; end_time?: string }>({});
+  const [gracePeriod, setGracePeriod] = useState(String(initial?.grace_period_minutes ?? 0));
+  const [errors, setErrors] = useState<{ name?: string; start_time?: string; end_time?: string; grace_period_minutes?: string }>({});
   const surface = useThemeColor({}, 'surface');
   const primary = useThemeColor({}, 'primary');
 
@@ -40,6 +42,7 @@ export function ShiftFormModal({ visible, title, initial, submitting, onSubmit, 
       setName(initial?.name ?? '');
       setStartTime(toTimeInput(initial?.start_time));
       setEndTime(toTimeInput(initial?.end_time));
+      setGracePeriod(String(initial?.grace_period_minutes ?? 0));
       setErrors({});
     }
   }, [visible, initial]);
@@ -52,12 +55,14 @@ export function ShiftFormModal({ visible, title, initial, submitting, onSubmit, 
     if (!name.trim()) next.name = 'Shift name is required.';
     if (!TIME_REGEX.test(startTime)) next.start_time = 'Use 24-hour HH:MM format, e.g. 09:00.';
     if (!TIME_REGEX.test(endTime)) next.end_time = 'Use 24-hour HH:MM format, e.g. 17:00.';
+    if (!/^\d+$/.test(gracePeriod)) next.grace_period_minutes = 'Enter a whole number of 0 or more minutes.';
     setErrors(next);
     if (Object.keys(next).length > 0) return;
     onSubmit({
       name: name.trim(),
       start_time: toBackendTime(startTime),
       end_time: toBackendTime(endTime),
+      grace_period_minutes: Number(gracePeriod),
     });
   };
 
@@ -86,6 +91,15 @@ export function ShiftFormModal({ visible, title, initial, submitting, onSubmit, 
             value={endTime}
             onChangeText={setEndTime}
             error={errors.end_time}
+          />
+          <Input
+            label="Grace Period (minutes)"
+            required
+            placeholder="0"
+            keyboardType="number-pad"
+            value={gracePeriod}
+            onChangeText={setGracePeriod}
+            error={errors.grace_period_minutes}
           />
           {showOvernight ? (
             <View style={[styles.badge, { backgroundColor: `${primary}15` }]}>
