@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { router, useLocalSearchParams } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { ThemedView } from '@/components/ui/ThemedView';
@@ -128,7 +129,7 @@ export default function RequestDetailScreen() {
 
       {rejectDialogOpen ? (
         <View style={styles.rejectOverlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.rejectAvoidingView}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.rejectAvoidingView}>
             <Card style={styles.rejectCard}>
             <ThemedText variant="h3" style={{ marginBottom: Spacing.md }}>
               Reject Request

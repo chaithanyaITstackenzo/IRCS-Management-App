@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import NetInfo from '@react-native-community/netinfo';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/store/authStore';
 import { useManagementStore } from '@/store/managementStore';
@@ -14,7 +15,7 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { FullScreenLoader } from '@/components/common/FullScreenLoader';
 import { canAccessManagementApp } from '@/utils/permissions';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { addNotificationResponseListener, getLastNotificationResponse, getNotificationData, registerForPushNotifications, storePushToken } from '@/services/pushNotifications';
+import { addNotificationResponseListener, getLastNotificationResponse, getNotificationData, registerForPushNotifications } from '@/services/pushNotifications';
 import type * as Notifications from 'expo-notifications';
 
 SplashScreen.preventAutoHideAsync();
@@ -47,9 +48,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isAppReady || !token || !user?.id) return;
 
-    registerForPushNotifications().then((expoPushToken) => {
-      if (expoPushToken) void storePushToken(expoPushToken);
-    });
+    void registerForPushNotifications();
   }, [isAppReady, token, user?.id]);
 
   useEffect(() => {
@@ -62,6 +61,10 @@ export default function RootLayout() {
       const screen = typeof data.screen === 'string' ? data.screen : '';
       const referenceId = data.referenceId ?? data.reference_id;
 
+      if (screen === 'requests') {
+        router.push('/(management)/(tabs)/requests');
+        return;
+      }
       if (requestId !== undefined && requestId !== null) {
         router.push(`/(management)/requests/${String(requestId)}`);
         return;
@@ -144,21 +147,23 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <SafeAreaProvider>
-            <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor }}>
-              <Stack>
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(management)" options={{ headerShown: false }} />
-                <Stack.Screen name="+not-found" options={{ title: 'Not Found' }} />
-              </Stack>
-              <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} backgroundColor={backgroundColor} />
-              <Toast />
-            </SafeAreaView>
-          </SafeAreaProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
+      <KeyboardProvider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <SafeAreaProvider>
+              <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor }}>
+                <Stack>
+                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                  <Stack.Screen name="(management)" options={{ headerShown: false }} />
+                  <Stack.Screen name="+not-found" options={{ title: 'Not Found' }} />
+                </Stack>
+                <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} backgroundColor={backgroundColor} />
+                <Toast />
+              </SafeAreaView>
+            </SafeAreaProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </KeyboardProvider>
     </ErrorBoundary>
   );
 }

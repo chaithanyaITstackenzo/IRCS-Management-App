@@ -72,6 +72,10 @@ function NotificationItem({ item, border, primary, markAsReadMutation }: { item:
     const screen = (item.screen ?? '').toLowerCase();
     const type = (item.type ?? '').toLowerCase();
 
+    if (screen === 'requests' || type.includes('leave_request') || type.includes('permission_request')) {
+      router.push('/(management)/(tabs)/requests');
+      return;
+    }
     if (item.attendance_request_id || item.request_id || item.requestId || type.includes('request')) {
       router.push(`/(management)/requests/${String(id)}`);
       return;

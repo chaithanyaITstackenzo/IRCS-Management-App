@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, Platform, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { ThemedView } from '@/components/ui/ThemedView';
@@ -31,11 +33,13 @@ export default function RequestsListScreen() {
   const [historyFilters, setHistoryFilters] = useState<Record<string, string | undefined>>({ period: 'today', month: currentMonthValue() });
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState<LeaveRequestItem | null>(null);
+  const [leaveApprovedDays, setLeaveApprovedDays] = useState('');
   const [selectedPermission, setSelectedPermission] = useState<PermissionRequestItem | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [rejecting, setRejecting] = useState(false);
-  const [permissionApproveFrom, setPermissionApproveFrom] = useState('');
-  const [permissionApproveTo, setPermissionApproveTo] = useState('');
+  const [permissionApproveFrom, setPermissionApproveFrom] = useState<Date | null>(null);
+  const [permissionApproveTo, setPermissionApproveTo] = useState<Date | null>(null);
+  const [permissionTimePicker, setPermissionTimePicker] = useState<'from' | 'to' | null>(null);
   const [permissionRejecting, setPermissionRejecting] = useState(false);
   const [selectedWorkoff, setSelectedWorkoff] = useState<WorkoffRequest | null>(null);
   const [workoffRejecting, setWorkoffRejecting] = useState(false);
@@ -79,14 +83,15 @@ export default function RequestsListScreen() {
     { key: 'month', label: 'Select month', options: previousMonthOptions, display: 'select', visibleWhen: (values) => values.period === 'month' },
   ];
 
-  const decide = (action: 'APPROVE' | 'REJECT', reason?: string) => {
+  const decide = (action: 'APPROVE' | 'REJECT', reason?: string, approvedDays?: number) => {
     if (!selectedLeave) return;
     decideLeave.mutate(
-      { requestId: String(selectedLeave.leave.id), action, rejection_reason: reason },
+      { requestId: String(selectedLeave.leave.id), action, approvedDays, rejection_reason: reason },
       {
         onSuccess: () => {
           Toast.show({ type: 'success', text1: action === 'APPROVE' ? 'Leave approved' : 'Leave rejected' });
           setSelectedLeave(null);
+          setLeaveApprovedDays('');
           setRejecting(false);
           setRejectReason('');
         },
@@ -98,7 +103,7 @@ export default function RequestsListScreen() {
   const decidePermissionRequest = (action: 'APPROVE' | 'REJECT', reason?: string) => {
     if (!selectedPermission) return;
     const details = action === 'APPROVE'
-      ? { approved_from: permissionApproveFrom, approved_to: permissionApproveTo }
+      ? { approved_from: permissionApproveFrom?.toISOString(), approved_to: permissionApproveTo?.toISOString() }
       : { rejection_reason: reason };
     decidePermission.mutate(
       { requestId: String(selectedPermission.permission.id), action, details },
@@ -107,6 +112,7 @@ export default function RequestsListScreen() {
           Toast.show({ type: 'success', text1: action === 'APPROVE' ? 'Permission approved' : 'Permission rejected' });
           setSelectedPermission(null);
           setPermissionRejecting(false);
+          setPermissionTimePicker(null);
           setRejectReason('');
         },
         onError: (requestError) => Toast.show({ type: 'error', text1: 'Unable to update permission', text2: getReadableErrorMessage(requestError) }),
@@ -116,9 +122,40 @@ export default function RequestsListScreen() {
 
   const selectPermission = (item: PermissionRequestItem, reject = false) => {
     setSelectedPermission(item);
-    setPermissionApproveFrom(String(item.permission.requested_from ?? ''));
-    setPermissionApproveTo(String(item.permission.requested_to ?? ''));
+    setPermissionTimePicker(null);
+    const requestedFrom = new Date(String(item.permission.requested_from ?? ''));
+    const requestedTo = new Date(String(item.permission.requested_to ?? ''));
+    setPermissionApproveFrom(Number.isNaN(requestedFrom.getTime()) ? null : requestedFrom);
+    setPermissionApproveTo(Number.isNaN(requestedTo.getTime()) ? null : requestedTo);
     setPermissionRejecting(reject);
+  };
+
+  const approvePermission = () => {
+    if (!selectedPermission || !permissionApproveFrom || !permissionApproveTo) {
+      Toast.show({ type: 'error', text1: 'Approved times are required' });
+      return;
+    }
+    const requestedFrom = new Date(String(selectedPermission.permission.requested_from ?? ''));
+    const requestedTo = new Date(String(selectedPermission.permission.requested_to ?? ''));
+    if (permissionApproveTo <= permissionApproveFrom) {
+      Toast.show({ type: 'error', text1: 'End time must be after start time' });
+      return;
+    }
+    if (permissionApproveFrom < requestedFrom || permissionApproveTo > requestedTo) {
+      Toast.show({ type: 'error', text1: 'Approved time must be within the requested interval' });
+      return;
+    }
+    decidePermissionRequest('APPROVE');
+  };
+
+  const changePermissionTime = (field: 'from' | 'to', selected?: Date) => {
+    if (!selected) return;
+    const current = field === 'from' ? permissionApproveFrom : permissionApproveTo;
+    if (!current) return;
+    const next = new Date(current);
+    next.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
+    if (field === 'from') setPermissionApproveFrom(next);
+    else setPermissionApproveTo(next);
   };
 
   const decideWorkoffRequest = (action: 'APPROVE' | 'REJECT', reason?: string) => {
@@ -203,7 +240,7 @@ export default function RequestsListScreen() {
               canDecide={canApproveRequests(user?.role) && !history}
               busy={decideLeave.isPending}
               history={history}
-              onApprove={() => setSelectedLeave(item)}
+              onApprove={() => { setSelectedLeave(item); setLeaveApprovedDays(String(item.leave.total_days ?? '')); }}
               onReject={() => { setSelectedLeave(item); setRejecting(true); }}
             />
           )}
@@ -260,17 +297,34 @@ export default function RequestsListScreen() {
       <ConfirmDialog
         visible={!!selectedLeave && !rejecting}
         title="Approve Leave?"
-        description="This will approve the employee's leave request and deduct the leave balance."
+        description={`Requested: ${String(selectedLeave?.leave.total_days ?? '—')} day(s). Choose how many days to approve.`}
         confirmLabel="Approve"
         confirmingLabel="Approving..."
         loading={decideLeave.isPending}
-        onConfirm={() => decide('APPROVE')}
-        onCancel={() => setSelectedLeave(null)}
-      />
+        onConfirm={() => {
+          const approvedDays = Number(leaveApprovedDays);
+          const requestedDays = Number(selectedLeave?.leave.total_days);
+          if (!Number.isFinite(approvedDays) || approvedDays <= 0 || approvedDays > requestedDays) {
+            Toast.show({ type: 'error', text1: `Enter a value from 0.01 to ${requestedDays} days` });
+            return;
+          }
+          decide('APPROVE', undefined, approvedDays);
+        }}
+        onCancel={() => { setSelectedLeave(null); setLeaveApprovedDays(''); }}
+      >
+        <Input
+          label="Approved days"
+          required
+          value={leaveApprovedDays}
+          onChangeText={setLeaveApprovedDays}
+          keyboardType="decimal-pad"
+          placeholder="Enter approved days"
+        />
+      </ConfirmDialog>
 
       {rejecting && selectedLeave ? (
         <View style={styles.rejectOverlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.rejectAvoidingView}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.rejectAvoidingView}>
             <View style={styles.rejectCard}>
             <ThemedText variant="h3">Reject Leave</ThemedText>
             <Input label="Reason" required placeholder="Let the employee know why..." value={rejectReason} onChangeText={setRejectReason} multiline />
@@ -290,13 +344,45 @@ export default function RequestsListScreen() {
         confirmLabel="Approve"
         confirmingLabel="Approving..."
         loading={decidePermission.isPending}
-        onConfirm={() => permissionApproveFrom && permissionApproveTo ? decidePermissionRequest('APPROVE') : Toast.show({ type: 'error', text1: 'Approved times are required' })}
-        onCancel={() => setSelectedPermission(null)}
-      />
+        onConfirm={approvePermission}
+        onCancel={() => { setSelectedPermission(null); setPermissionTimePicker(null); }}
+      >
+        <View style={styles.permissionTimes}>
+          {(['from', 'to'] as const).map((field) => {
+            const value = field === 'from' ? permissionApproveFrom : permissionApproveTo;
+            return (
+              <View key={field} style={styles.permissionTimeField}>
+                <ThemedText variant="captionStrong" muted>{field === 'from' ? 'Approved from' : 'Approved until'}</ThemedText>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setPermissionTimePicker(field)}
+                  style={[styles.permissionTimeButton, { borderColor: border }]}
+                >
+                  <ThemedText variant="bodyStrong">{value ? value.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Select time'}</ThemedText>
+                </Pressable>
+              </View>
+            );
+          })}
+        </View>
+        {permissionTimePicker ? (
+          <View>
+            <DateTimePicker
+              value={(permissionTimePicker === 'from' ? permissionApproveFrom : permissionApproveTo) ?? new Date()}
+              mode="time"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selected) => {
+                if (Platform.OS === 'android') setPermissionTimePicker(null);
+                if (event.type !== 'dismissed') changePermissionTime(permissionTimePicker, selected);
+              }}
+            />
+            {Platform.OS === 'ios' ? <Button label="Done" variant="secondary" onPress={() => setPermissionTimePicker(null)} /> : null}
+          </View>
+        ) : null}
+      </ConfirmDialog>
 
       {permissionRejecting && selectedPermission ? (
         <View style={styles.rejectOverlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.rejectAvoidingView}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.rejectAvoidingView}>
             <View style={styles.rejectCard}>
             <ThemedText variant="h3">Reject Permission</ThemedText>
             <Input label="Reason" required placeholder="Let the employee know why..." value={rejectReason} onChangeText={setRejectReason} multiline />
@@ -322,7 +408,7 @@ export default function RequestsListScreen() {
 
       {workoffRejecting && selectedWorkoff ? (
         <View style={styles.rejectOverlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.rejectAvoidingView}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.rejectAvoidingView}>
             <View style={styles.rejectCard}>
               <ThemedText variant="h3">Reject Sunday Work</ThemedText>
               <Input label="Reason" required placeholder="Let the employee know why..." value={rejectReason} onChangeText={setRejectReason} multiline />
@@ -363,5 +449,8 @@ const styles = StyleSheet.create({
   rejectCard: { width: '100%', maxWidth: 400, padding: Spacing.xl, backgroundColor: '#fff', borderRadius: 12 },
   actions: { flexDirection: 'row', gap: Spacing.md },
   action: { flex: 1 },
+  permissionTimes: { gap: Spacing.sm, marginTop: Spacing.lg },
+  permissionTimeField: { gap: Spacing.xs },
+  permissionTimeButton: { minHeight: 48, justifyContent: 'center', paddingHorizontal: Spacing.md, borderWidth: 1, borderRadius: 8 },
   filterButton: { minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, borderWidth: 1, borderRadius: 8, paddingHorizontal: Spacing.md },
 });

@@ -22,13 +22,18 @@ export function LeaveRequestListItem({ item, canDecide, busy, onApprove, onRejec
   const surface = useThemeColor({}, 'surface');
   const border = useThemeColor({}, 'border');
   const leave = item.leave;
+  const totalDays = Number(leave.total_days ?? 0);
+  const requestedDays = Number(leave.requested_days ?? leave.total_days ?? 0);
+  const daysLabel = leave.status === 'APPROVED' && totalDays !== requestedDays
+    ? `${totalDays} approved of ${requestedDays} requested`
+    : `${totalDays} day(s)`;
 
   return (
     <View style={[styles.row, { backgroundColor: surface, borderColor: border }]}>
       <View style={styles.info}>
         <ThemedText variant="bodyStrong">{item.employee.name}</ThemedText>
         <ThemedText variant="caption" muted>
-          {String(leave.from_date ?? '')} to {String(leave.to_date ?? '')} · {String(leave.total_days ?? '')} day(s)
+          {String(leave.from_date ?? '')} to {String(leave.to_date ?? '')} · {daysLabel}
         </ThemedText>
         <ThemedText variant="caption" muted numberOfLines={2}>
           {String(leave.reason ?? '')}

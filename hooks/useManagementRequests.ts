@@ -26,7 +26,7 @@ export function useLeaveRequests(params: Record<string, string | number | undefi
 export function useDecideLeaveRequest() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ requestId, action, rejection_reason }: { requestId: string; action: 'APPROVE' | 'REJECT'; rejection_reason?: string }) => leaveApi.decideLeaveRequest(requestId, action, rejection_reason),
+    mutationFn: ({ requestId, action, approvedDays, rejection_reason }: { requestId: string; action: 'APPROVE' | 'REJECT'; approvedDays?: number; rejection_reason?: string }) => leaveApi.decideLeaveRequest(requestId, action, { approvedDays, rejection_reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'management'] });
