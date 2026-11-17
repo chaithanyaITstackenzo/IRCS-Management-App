@@ -8,6 +8,7 @@ import { Radius, Spacing } from '@/constants/spacing';
 import { REQUEST_STATUS, REQUEST_TYPE_LABEL } from '@/constants/status';
 import { AttendanceRequest } from '@/types/request';
 import { formatDate, formatDateTime } from '@/utils/date';
+import { OutsideAttendanceLocation } from './OutsideAttendanceLocation';
 
 export function RequestListItem({ request, history = false }: { request: AttendanceRequest; history?: boolean }) {
   const surface = useThemeColor({}, 'surface');
@@ -26,6 +27,7 @@ export function RequestListItem({ request, history = false }: { request: Attenda
         <ThemedText variant="caption" muted>
           {REQUEST_TYPE_LABEL[request.request_type] ?? request.request_type} · {formatDate(request.created_at)}
         </ThemedText>
+        {request.request_type === 'OUTSIDE_WORK' ? <OutsideAttendanceLocation location={request.location} /> : null}
         <ThemedText variant="caption" muted numberOfLines={2}>
           {request.reason}
         </ThemedText>

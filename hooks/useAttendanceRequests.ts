@@ -13,9 +13,10 @@ export function useRequest(id: string) {
   return useQuery({
     queryKey: [...key, id],
     queryFn: async () => {
-      const cachedQueries = queryClient.getQueriesData<import('@/types/request').AttendanceRequest[]>({
-        queryKey: [...key, 'pending'],
-      });
+      const cachedQueries = [
+        ...queryClient.getQueriesData<import('@/types/request').AttendanceRequest[]>({ queryKey: [...key, 'pending'] }),
+        ...queryClient.getQueriesData<import('@/types/request').AttendanceRequest[]>({ queryKey: [...key, 'all'] }),
+      ];
       const request = cachedQueries
         .flatMap(([, requests]) => requests ?? [])
         .find((item) => item.id === id);

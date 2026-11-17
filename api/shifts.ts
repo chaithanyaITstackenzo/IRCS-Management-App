@@ -23,7 +23,7 @@ export async function createShift(payload: ShiftPayload): Promise<Shift> {
 
 export async function updateShift(id: string, payload: ShiftPayload): Promise<Shift> {
   if (MOCK_AUTH_ENABLED) throw new Error('Shift editing requires the backend shift route.');
-  const { data } = await shiftsApi.put<{ message: string; data: Shift }>(`/update/${id}`, payload);
+  const { data } = await shiftsApi.put<{ message: string; data: Shift }>(`/update/${id}`, withDefaults(payload));
   return data.data;
 }
 

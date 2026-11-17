@@ -12,6 +12,8 @@ import { ErrorState } from '@/components/common/ErrorState';
 import { LoadingSkeleton } from '@/components/common/LoadingSkeleton';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { useEmployee, useDeactivateEmployee } from '@/hooks/useEmployees';
+import { useEmployeeLeaveBalance } from '@/hooks/useManagementRequests';
+import { useEmployeePresentDays } from '@/hooks/useAttendance';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Spacing } from '@/constants/spacing';
 import { EMPLOYEE_STATUS, ENROLLMENT_STATUS } from '@/constants/status';
@@ -26,6 +28,8 @@ export default function EmployeeDetailScreen() {
   const { id: routeId } = useLocalSearchParams<{ id?: string | string[] }>();
   const id = Array.isArray(routeId) ? routeId[0] : routeId;
   const { data: employee, isLoading, isError, error, refetch } = useEmployee(id ?? '');
+  const leaveBalance = useEmployeeLeaveBalance(employee?.id ?? '');
+  const presentDays = useEmployeePresentDays(employee?.id ?? '');
   const deactivate = useDeactivateEmployee();
   const [confirmVisible, setConfirmVisible] = useState(false);
   const { user } = useAuthStore();
@@ -90,6 +94,45 @@ export default function EmployeeDetailScreen() {
           {canManageEmployees(user?.role) ? (
             <Row label="Salary" value={formatCurrencyINR(employee.salary)} />
           ) : null}
+        </Card>
+
+        <Card style={styles.section}>
+          <ThemedText variant="h3" style={styles.sectionTitle}>
+            Attendance
+          </ThemedText>
+          {presentDays.isLoading ? (
+            <ThemedText variant="body" muted>Loading present days…</ThemedText>
+          ) : presentDays.isError ? (
+            <>
+              <ThemedText variant="body" muted>Unable to load this month’s present days.</ThemedText>
+              <Button label="Retry" variant="secondary" onPress={() => presentDays.refetch()} />
+            </>
+          ) : (
+            <Row label="Present days this month" value={`${presentDays.data ?? 0} days`} />
+          )}
+        </Card>
+
+        <Card style={styles.section}>
+          <ThemedText variant="h3" style={styles.sectionTitle}>
+            Leave Balance
+          </ThemedText>
+          {leaveBalance.isLoading ? (
+            <ThemedText variant="body" muted>Loading remaining leaves…</ThemedText>
+          ) : leaveBalance.isError ? (
+            <>
+              <ThemedText variant="body" muted>Unable to load the remaining leave balance.</ThemedText>
+              <Button label="Retry" variant="secondary" onPress={() => leaveBalance.refetch()} />
+            </>
+          ) : leaveBalance.data ? (
+            <Row
+              label="Remaining leaves"
+              value={`${leaveBalance.data.available_leave_balance.toLocaleString('en-IN', { maximumFractionDigits: 2 })} days`}
+            />
+          ) : (
+            <ThemedText variant="body" muted>
+              Current-month balance is not available from the leave request records.
+            </ThemedText>
+          )}
         </Card>
 
         <Card style={styles.section}>

@@ -7,7 +7,6 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { Radius, Spacing } from '@/constants/spacing';
 import { REQUEST_STATUS } from '@/constants/status';
 import { WorkoffRequest } from '@/types/managementRequests';
-import { formatDateTime } from '@/utils/date';
 
 interface WorkoffRequestListItemProps {
   item: WorkoffRequest;
@@ -15,10 +14,9 @@ interface WorkoffRequestListItemProps {
   busy: boolean;
   onApprove: () => void;
   onReject: () => void;
-  history?: boolean;
 }
 
-export function WorkoffRequestListItem({ item, canDecide, busy, onApprove, onReject, history = false }: WorkoffRequestListItemProps) {
+export function WorkoffRequestListItem({ item, canDecide, busy, onApprove, onReject }: WorkoffRequestListItemProps) {
   const surface = useThemeColor({}, 'surface');
   const border = useThemeColor({}, 'border');
 
@@ -30,10 +28,9 @@ export function WorkoffRequestListItem({ item, canDecide, busy, onApprove, onRej
           Sunday work · {item.worked_date}
         </ThemedText>
         <ThemedText variant="caption" muted numberOfLines={2}>{item.reason}</ThemedText>
-        {history ? <ThemedText variant="caption" muted>{item.status === 'APPROVED' ? 'Approved' : 'Rejected'} by {item.approved_by ?? '—'} · {formatDateTime(item.approved_at ?? item.updated_at)}</ThemedText> : null}
       </View>
       <StatusBadge meta={REQUEST_STATUS[item.status] ?? REQUEST_STATUS.PENDING} />
-      {canDecide && !history ? (
+      {canDecide ? (
         <View style={styles.actions}>
           <Button label="Reject" variant="danger" onPress={onReject} disabled={busy} style={styles.action} />
           <Button label="Approve" onPress={onApprove} disabled={busy} style={styles.action} />

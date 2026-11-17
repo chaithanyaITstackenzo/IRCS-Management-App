@@ -83,6 +83,24 @@ export async function listAttendance(params: AttendanceListParams): Promise<Atte
   return data.attendance.map(toUiRecord);
 }
 
+export async function getEmployeePresentDays(employeeId: string): Promise<number> {
+  const indiaNow = new Date(Date.now() + 330 * 60 * 1000);
+  const year = indiaNow.getUTCFullYear();
+  const month = String(indiaNow.getUTCMonth() + 1).padStart(2, '0');
+  const attendance = await listAttendance({
+    filter: 'month',
+    employeeId,
+    page: 1,
+    limit: 100,
+  });
+  const presentDates = new Set(
+    attendance
+      .filter((record) => record.emp_id === employeeId && !!record.in_time && record.attendance_date.startsWith(`${year}-${month}`))
+      .map((record) => record.attendance_date)
+  );
+  return presentDates.size;
+}
+
 export async function getAttendanceRecord(id: string): Promise<AttendanceRecord> {
   if (MOCK_AUTH_ENABLED) return mock.mockGetAttendanceRecord(id);
   void id; throw new Error('Attendance details are available from the loaded attendance list only.');

@@ -18,6 +18,15 @@ export function useAttendanceHistory(params: AttendanceListParams) {
   });
 }
 
+export function useEmployeePresentDays(employeeId: string) {
+  return useQuery({
+    queryKey: ['attendance', 'present-days', employeeId],
+    queryFn: () => attendanceApi.getEmployeePresentDays(employeeId),
+    enabled: !!employeeId,
+    staleTime: 1000 * 30,
+  });
+}
+
 export function useAttendanceRecord(id: string) {
   const queryClient = useQueryClient();
   return useQuery({

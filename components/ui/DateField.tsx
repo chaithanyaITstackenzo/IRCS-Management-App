@@ -27,6 +27,7 @@ export function DateField({ label, value, onChange, required, error, maximumDate
   const errorColor = useThemeColor({}, 'error');
 
   const dateValue = value ? new Date(value) : undefined;
+  const pickerMinimumDate = minimumDate ?? (maximumDate ? new Date(1900, 0, 1) : undefined);
 
   const handleChange = (event: { type: string }, selected?: Date) => {
     if (Platform.OS === 'android') setOpen(false);
@@ -58,7 +59,7 @@ export function DateField({ label, value, onChange, required, error, maximumDate
           display={Platform.OS === 'ios' ? 'inline' : 'default'}
           onChange={handleChange}
           maximumDate={maximumDate}
-          minimumDate={minimumDate}
+          minimumDate={pickerMinimumDate}
         />
       ) : null}
     </View>

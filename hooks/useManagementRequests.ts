@@ -23,12 +23,22 @@ export function useLeaveRequests(params: Record<string, string | number | undefi
   return useQuery({ queryKey: ['leave-requests', params], queryFn: () => leaveApi.listLeaveRequests(params) });
 }
 
+export function useEmployeeLeaveBalance(employeeId: string) {
+  return useQuery({
+    queryKey: ['employee-leave-balance', employeeId],
+    queryFn: () => leaveApi.getEmployeeLeaveBalance(employeeId),
+    enabled: !!employeeId,
+    staleTime: 1000 * 60,
+  });
+}
+
 export function useDecideLeaveRequest() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ requestId, action, approvedDays, rejection_reason }: { requestId: string; action: 'APPROVE' | 'REJECT'; approvedDays?: number; rejection_reason?: string }) => leaveApi.decideLeaveRequest(requestId, action, { approvedDays, rejection_reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leave-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['employee-leave-balance'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'management'] });
     },
   });

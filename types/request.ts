@@ -19,6 +19,10 @@ export interface AttendanceRequest {
   rejection_reason: string | null;
   created_at: string;
   updated_at: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  } | null;
 
   employee?: {
     id: string;

@@ -27,10 +27,33 @@ interface BackendAttendanceEmployee {
   mobile?: string;
 }
 
-function normalizeRequest(request: BackendAttendanceRequest, employee?: BackendAttendanceEmployee): AttendanceRequest {
+interface BackendAttendanceLocation {
+  latitude: number | string | null;
+  longitude: number | string | null;
+}
+
+function normalizeRequest(
+  request: BackendAttendanceRequest,
+  employee?: BackendAttendanceEmployee,
+  attendance?: { in_location?: BackendAttendanceLocation | null },
+): AttendanceRequest {
+  const latitude = attendance?.in_location?.latitude;
+  const longitude = attendance?.in_location?.longitude;
+  const parsedLatitude = latitude === null || latitude === undefined ? NaN : Number(latitude);
+  const parsedLongitude = longitude === null || longitude === undefined ? NaN : Number(longitude);
+  const location = Number.isFinite(parsedLatitude)
+    && parsedLatitude >= -90
+    && parsedLatitude <= 90
+    && Number.isFinite(parsedLongitude)
+    && parsedLongitude >= -180
+    && parsedLongitude <= 180
+    ? { latitude: parsedLatitude, longitude: parsedLongitude }
+    : null;
+
   return {
     ...request,
     request_type: request.type,
+    location,
     employee: employee
       ? {
           id: employee.id,
@@ -50,9 +73,9 @@ export async function listRequests(status: 'PENDING' | 'ALL' = 'PENDING', params
   }
   const statuses = status === 'ALL' ? ['APPROVED', 'REJECTED'] : [status];
   const responses = await Promise.all(statuses.map((requestStatus) =>
-    fillApi.get<{ requests: Array<{ request: BackendAttendanceRequest; employee?: BackendAttendanceEmployee }> }>('/attendanceRequests', { params: { status: requestStatus, page: 1, ...params } }),
+    fillApi.get<{ requests: { request: BackendAttendanceRequest; employee?: BackendAttendanceEmployee; attendance?: { in_location?: BackendAttendanceLocation | null } }[] }>('/attendanceRequests', { params: { status: requestStatus, page: 1, ...params } }),
   ));
-  const requests = responses.flatMap(({ data }) => data.requests.map((item) => normalizeRequest(item.request, item.employee)));
+  const requests = responses.flatMap(({ data }) => data.requests.map((item) => normalizeRequest(item.request, item.employee, item.attendance)));
   return status === 'PENDING' ? requests.filter((request) => request.status === 'PENDING') : requests;
 }
 
@@ -67,8 +90,7 @@ export async function getRequest(id: string): Promise<AttendanceRequest> {
 
 export async function approveRequest(id: string): Promise<AttendanceRequest> {
   if (MOCK_AUTH_ENABLED) return mock.mockApproveRequest(id);
-  const user = useAuthStore.getState().user;
-  const { data } = await fillApi.put<{ request: BackendAttendanceRequest }>('/attendanceRequest', { requestId: id, action: 'APPROVE', approvedBy: user?.user_id ?? user?.id });
+  const { data } = await fillApi.put<{ request: BackendAttendanceRequest }>('/attendanceRequest', { requestId: id, action: 'APPROVE', approvedBy: useAuthStore.getState().user?.user_id });
   return normalizeRequest(data.request);
 }
 
@@ -78,7 +100,6 @@ export async function rejectRequest(id: string, payload?: AttendanceRequestRejec
   const reason = payload?.rejection_reason?.trim();
   if (!reason) throw new Error('Rejection reason is required.');
   if (MOCK_AUTH_ENABLED) return mock.mockRejectRequest(id, reason);
-  const user = useAuthStore.getState().user;
-  const { data } = await fillApi.put<{ request: BackendAttendanceRequest }>('/attendanceRequest', { requestId: id, action: 'REJECT', approvedBy: user?.user_id ?? user?.id, rejectionReason: reason });
+  const { data } = await fillApi.put<{ request: BackendAttendanceRequest }>('/attendanceRequest', { requestId: id, action: 'REJECT', approvedBy: useAuthStore.getState().user?.user_id, rejectionReason: reason });
   return normalizeRequest(data.request);
 }

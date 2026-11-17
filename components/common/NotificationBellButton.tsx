@@ -5,7 +5,6 @@ import { router } from 'expo-router';
 import { ThemedText } from '@/components/ui/ThemedText';
 import { useNotifications } from '@/hooks/useManagementRequests';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { Spacing } from '@/constants/spacing';
 
 export function NotificationBellButton() {
   const { data = [] } = useNotifications();

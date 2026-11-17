@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView, KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { ThemedText } from '../ui/ThemedText';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -69,9 +69,14 @@ export function ShiftFormModal({ visible, title, initial, submitting, onSubmit, 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardAvoidingView}>
           <Pressable style={[styles.sheet, { backgroundColor: surface }]}> 
-            <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.formContent}>
+            <KeyboardAwareScrollView
+              bottomOffset={24}
+              keyboardShouldPersistTaps="handled"
+              style={styles.scroll}
+              contentContainerStyle={styles.formContent}
+            >
           <ThemedText variant="h3" style={{ marginBottom: Spacing.lg }}>
             {title}
           </ThemedText>
@@ -118,7 +123,7 @@ export function ShiftFormModal({ visible, title, initial, submitting, onSubmit, 
               onPress={handleSubmit}
             />
           </View>
-            </ScrollView>
+            </KeyboardAwareScrollView>
           </Pressable>
         </KeyboardAvoidingView>
       </Pressable>
@@ -138,7 +143,9 @@ function toTimeInput(value?: string): string {
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  keyboardAvoidingView: { flex: 1, justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl, padding: Spacing.xl, maxHeight: '85%' },
+  scroll: { flexShrink: 1 },
   formContent: { flexGrow: 1 },
   badge: { alignSelf: 'flex-start', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: Radius.full, marginBottom: Spacing.md },
   actions: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.sm },

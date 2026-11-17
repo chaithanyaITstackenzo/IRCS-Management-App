@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { router, useLocalSearchParams } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { ThemedView } from '@/components/ui/ThemedView';
@@ -19,6 +19,7 @@ import { formatDateTime } from '@/utils/date';
 import { getReadableErrorMessage } from '@/utils/errorMessages';
 import { canApproveRequests } from '@/utils/permissions';
 import { useAuthStore } from '@/store/authStore';
+import { OutsideAttendanceLocation } from '@/components/requests/OutsideAttendanceLocation';
 
 export default function RequestDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -85,6 +86,7 @@ export default function RequestDetailScreen() {
           <Row label="Type" value={REQUEST_TYPE_LABEL[request.request_type] ?? request.request_type} />
           <Row label="Requested" value={formatDateTime(request.requested_time)} />
           <Row label="Submitted" value={formatDateTime(request.created_at)} />
+          {request.request_type === 'OUTSIDE_WORK' ? <OutsideAttendanceLocation location={request.location} /> : null}
         </Card>
 
         <Card style={styles.section}>
@@ -129,7 +131,12 @@ export default function RequestDetailScreen() {
 
       {rejectDialogOpen ? (
         <View style={styles.rejectOverlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.rejectAvoidingView}>
+          <KeyboardAwareScrollView
+            bottomOffset={24}
+            keyboardShouldPersistTaps="handled"
+            style={styles.rejectAvoidingView}
+            contentContainerStyle={styles.rejectContent}
+          >
             <Card style={styles.rejectCard}>
             <ThemedText variant="h3" style={{ marginBottom: Spacing.md }}>
               Reject Request
@@ -160,7 +167,7 @@ export default function RequestDetailScreen() {
               />
             </View>
             </Card>
-          </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
         </View>
       ) : null}
     </ThemedView>
@@ -192,10 +199,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.45)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.xl,
   },
-  rejectAvoidingView: { width: '100%', flex: 1, alignItems: 'center', justifyContent: 'center' },
+  rejectAvoidingView: { width: '100%', flex: 1 },
+  rejectContent: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
   rejectCard: { width: '100%', maxWidth: 400 },
 });

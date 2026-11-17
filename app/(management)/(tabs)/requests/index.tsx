@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, Platform, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { ThemedView } from '@/components/ui/ThemedView';
@@ -275,7 +275,6 @@ export default function RequestsListScreen() {
               item={item}
               canDecide={canApproveRequests(user?.role) && !history}
               busy={decideWorkoff.isPending}
-              history={history}
               onApprove={() => setSelectedWorkoff(item)}
               onReject={() => { setSelectedWorkoff(item); setWorkoffRejecting(true); }}
             />
@@ -324,7 +323,12 @@ export default function RequestsListScreen() {
 
       {rejecting && selectedLeave ? (
         <View style={styles.rejectOverlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.rejectAvoidingView}>
+          <KeyboardAwareScrollView
+            bottomOffset={24}
+            keyboardShouldPersistTaps="handled"
+            style={styles.rejectAvoidingView}
+            contentContainerStyle={styles.rejectContent}
+          >
             <View style={styles.rejectCard}>
             <ThemedText variant="h3">Reject Leave</ThemedText>
             <Input label="Reason" required placeholder="Let the employee know why..." value={rejectReason} onChangeText={setRejectReason} multiline />
@@ -333,7 +337,7 @@ export default function RequestsListScreen() {
               <Button label="Reject" loadingLabel="Rejecting..." loading={decideLeave.isPending} variant="danger" onPress={() => rejectReason.trim() ? decide('REJECT', rejectReason.trim()) : Toast.show({ type: 'error', text1: 'Rejection reason is required' })} style={styles.action} />
             </View>
             </View>
-          </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
         </View>
       ) : null}
 
@@ -382,7 +386,12 @@ export default function RequestsListScreen() {
 
       {permissionRejecting && selectedPermission ? (
         <View style={styles.rejectOverlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.rejectAvoidingView}>
+          <KeyboardAwareScrollView
+            bottomOffset={24}
+            keyboardShouldPersistTaps="handled"
+            style={styles.rejectAvoidingView}
+            contentContainerStyle={styles.rejectContent}
+          >
             <View style={styles.rejectCard}>
             <ThemedText variant="h3">Reject Permission</ThemedText>
             <Input label="Reason" required placeholder="Let the employee know why..." value={rejectReason} onChangeText={setRejectReason} multiline />
@@ -391,7 +400,7 @@ export default function RequestsListScreen() {
               <Button label="Reject" loadingLabel="Rejecting..." loading={decidePermission.isPending} variant="danger" onPress={() => rejectReason.trim() ? decidePermissionRequest('REJECT', rejectReason.trim()) : Toast.show({ type: 'error', text1: 'Rejection reason is required' })} style={styles.action} />
             </View>
             </View>
-          </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
         </View>
       ) : null}
 
@@ -408,7 +417,12 @@ export default function RequestsListScreen() {
 
       {workoffRejecting && selectedWorkoff ? (
         <View style={styles.rejectOverlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.rejectAvoidingView}>
+          <KeyboardAwareScrollView
+            bottomOffset={24}
+            keyboardShouldPersistTaps="handled"
+            style={styles.rejectAvoidingView}
+            contentContainerStyle={styles.rejectContent}
+          >
             <View style={styles.rejectCard}>
               <ThemedText variant="h3">Reject Sunday Work</ThemedText>
               <Input label="Reason" required placeholder="Let the employee know why..." value={rejectReason} onChangeText={setRejectReason} multiline />
@@ -417,7 +431,7 @@ export default function RequestsListScreen() {
                 <Button label="Reject" loadingLabel="Rejecting..." loading={decideWorkoff.isPending} variant="danger" onPress={() => rejectReason.trim() ? decideWorkoffRequest('REJECT', rejectReason.trim()) : Toast.show({ type: 'error', text1: 'Rejection reason is required' })} style={styles.action} />
               </View>
             </View>
-          </KeyboardAvoidingView>
+          </KeyboardAwareScrollView>
         </View>
       ) : null}
 
@@ -444,8 +458,9 @@ const styles = StyleSheet.create({
   historyButton: { minHeight: 42, justifyContent: 'center', borderWidth: 1, borderRadius: 8, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm },
   tabs: { flexDirection: 'row', borderWidth: 1, borderRadius: 8, marginTop: Spacing.md, overflow: 'hidden' },
   tab: { flex: 1, alignItems: 'center', paddingVertical: Spacing.sm },
-  rejectOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
-  rejectAvoidingView: { width: '100%', flex: 1, alignItems: 'center', justifyContent: 'center' },
+  rejectOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)' },
+  rejectAvoidingView: { width: '100%', flex: 1 },
+  rejectContent: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
   rejectCard: { width: '100%', maxWidth: 400, padding: Spacing.xl, backgroundColor: '#fff', borderRadius: 12 },
   actions: { flexDirection: 'row', gap: Spacing.md },
   action: { flex: 1 },

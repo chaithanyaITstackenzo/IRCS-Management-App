@@ -8,6 +8,13 @@ export interface PermissionRequestItem {
 export interface LeaveRequestItem {
   leave: Record<string, unknown>;
   employee: { id: string; employee_code: string; name: string; email?: string };
+  leave_balance?: EmployeeLeaveBalance;
+}
+
+export interface EmployeeLeaveBalance {
+  year: number | null;
+  month: number | null;
+  available_leave_balance: number;
 }
 
 export interface WorkoffRequest {

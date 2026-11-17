@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
-import { Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { Modal, Platform, StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView, KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { ThemedText } from '../ui/ThemedText';
 import { Button } from '../ui/Button';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -40,14 +40,14 @@ export function ConfirmDialog({
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.backdrop}>
         <View style={[styles.card, { backgroundColor: surface }]}>
           <ThemedText variant="h3">{title}</ThemedText>
-          <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
+          <KeyboardAwareScrollView bottomOffset={24} style={styles.content} keyboardShouldPersistTaps="handled">
             {description ? (
               <ThemedText variant="body" muted style={{ marginTop: Spacing.sm }}>
                 {description}
               </ThemedText>
             ) : null}
             {children}
-          </ScrollView>
+          </KeyboardAwareScrollView>
           <View style={styles.actions}>
             <Button label="Cancel" variant="secondary" onPress={onCancel} style={styles.actionBtn} disabled={loading} />
             <Button

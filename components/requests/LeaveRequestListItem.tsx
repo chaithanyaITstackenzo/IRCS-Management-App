@@ -21,9 +21,16 @@ interface LeaveRequestListItemProps {
 export function LeaveRequestListItem({ item, canDecide, busy, onApprove, onReject, history = false }: LeaveRequestListItemProps) {
   const surface = useThemeColor({}, 'surface');
   const border = useThemeColor({}, 'border');
+  const warning = useThemeColor({}, 'warning');
   const leave = item.leave;
   const totalDays = Number(leave.total_days ?? 0);
   const requestedDays = Number(leave.requested_days ?? leave.total_days ?? 0);
+  const availableBalance = item.leave_balance?.available_leave_balance;
+  const balanceIsValid = Number.isFinite(availableBalance) && Number(availableBalance) >= 0;
+  const exceedsBalance = !history
+    && leave.status === 'PENDING'
+    && balanceIsValid
+    && requestedDays > Number(availableBalance);
   const daysLabel = leave.status === 'APPROVED' && totalDays !== requestedDays
     ? `${totalDays} approved of ${requestedDays} requested`
     : `${totalDays} day(s)`;
@@ -35,6 +42,16 @@ export function LeaveRequestListItem({ item, canDecide, busy, onApprove, onRejec
         <ThemedText variant="caption" muted>
           {String(leave.from_date ?? '')} to {String(leave.to_date ?? '')} · {daysLabel}
         </ThemedText>
+        <ThemedText variant="caption" muted>
+          Remaining balance: {balanceIsValid
+            ? `${Number(availableBalance).toLocaleString('en-IN', { maximumFractionDigits: 2 })} day(s)`
+            : 'Unavailable'}
+        </ThemedText>
+        {exceedsBalance ? (
+          <ThemedText variant="caption" style={{ color: warning }}>
+            Request is {Number(requestedDays - Number(availableBalance)).toLocaleString('en-IN', { maximumFractionDigits: 2 })} day(s) over the available balance.
+          </ThemedText>
+        ) : null}
         <ThemedText variant="caption" muted numberOfLines={2}>
           {String(leave.reason ?? '')}
         </ThemedText>
