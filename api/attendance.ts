@@ -46,10 +46,34 @@ async function fetchAdmin(body: Record<string, unknown>) {
   return data;
 }
 
+async function fetchAllAttendance(params: AttendanceListParams): Promise<AttendanceRecord[]> {
+  const { page: initialPage = 1, ...filters } = params;
+  const limit = 50;
+  const records: AttendanceAdminRecord[] = [];
+  let page = initialPage;
+  let totalRecords = 0;
+
+  do {
+    const data = await fetchAdmin({ ...filters, page, limit });
+    records.push(...data.attendance);
+    totalRecords = data.pagination.total_records;
+    if (records.length < totalRecords && data.attendance.length === 0) {
+      throw new Error('Unable to load all attendance records.');
+    }
+    page += 1;
+  } while (records.length < totalRecords);
+
+  return records.map(toUiRecord);
+}
+
 export async function getTodayAttendance(): Promise<AttendanceRecord[]> {
   if (MOCK_AUTH_ENABLED) return mock.mockTodayAttendance();
-  const data = await fetchAdmin({ filter: 'today', page: 1, limit: 50 });
-  return data.attendance.map(toUiRecord);
+  return fetchAllAttendance({ filter: 'today' });
+}
+
+export async function listAllAttendance(params: AttendanceListParams): Promise<AttendanceRecord[]> {
+  if (MOCK_AUTH_ENABLED) return mock.mockListAttendance(params);
+  return fetchAllAttendance(params);
 }
 
 export async function listAttendance(params: AttendanceListParams): Promise<AttendanceRecord[]> {

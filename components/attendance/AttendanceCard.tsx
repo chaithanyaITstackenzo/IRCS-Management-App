@@ -5,7 +5,7 @@ import { ThemedText } from '../ui/ThemedText';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { Radius, Spacing } from '@/constants/spacing';
 import { AttendanceRecord } from '@/types/attendance';
-import { formatDuration, formatTime } from '@/utils/date';
+import { formatDate, formatDuration, formatTime } from '@/utils/date';
 
 export function AttendanceCard({ record }: { record: AttendanceRecord }) {
   const surface = useThemeColor({}, 'surface');
@@ -34,6 +34,7 @@ export function AttendanceCard({ record }: { record: AttendanceRecord }) {
         ) : null}
       </View>
       <View style={styles.grid}>
+        <Field label="DATE" value={formatDate(record.attendance_date)} />
         <Field label="IN" value={formatTime(record.in_time)} />
         <Field label="OUT" value={formatTime(record.out_time)} />
         <Field label="Hours" value={formatDuration(record.total_hours_worked)} />

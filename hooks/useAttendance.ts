@@ -13,7 +13,7 @@ export function useTodayAttendance() {
 export function useAttendanceHistory(params: AttendanceListParams) {
   return useQuery({
     queryKey: ['attendance', 'history', params],
-    queryFn: () => attendanceApi.listAttendance(params),
+    queryFn: () => attendanceApi.listAllAttendance(params),
     staleTime: 1000 * 30,
   });
 }
